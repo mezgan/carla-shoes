@@ -33,6 +33,38 @@ nav a{margin-left:28px;text-decoration:none;font-size:.9rem;letter-spacing:.12em
 .arc::after{content:"";position:absolute;inset:12%;border:1px solid var(--line);border-radius:50%}
 @keyframes turn{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.arc{animation:none}html{scroll-behavior:auto}}
+header{transition:background .3s}
+header.scrolled{background:rgba(10,22,18,.94);backdrop-filter:blur(8px)}
+.hero{display:block;padding:0}
+#slides,.slide{position:absolute;inset:0}
+.slide{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:4vw;align-items:end;padding:0 5vw 17vh;opacity:0;visibility:hidden;transition:opacity .9s,visibility .9s}
+.slide.on{opacity:1;visibility:visible}
+.txt{position:relative;z-index:1}
+.eye{display:block;color:var(--brass);letter-spacing:.3em;text-transform:uppercase;font-size:.78rem;margin-bottom:20px}
+.slide h1{font-size:clamp(2.6rem,7.2vw,6.4rem);max-width:13ch}
+.slide p{max-width:44ch}
+.vis{justify-self:center;align-self:center;width:min(380px,30vw);aspect-ratio:4/5;border-radius:999px 999px 0 0;background:radial-gradient(circle at 50% 30%,#264a3b,#10241C) center/cover;border:1px solid var(--brass);outline:1px solid var(--line);outline-offset:14px;display:grid;place-items:center;margin-top:8vh}
+.vis b{font:italic 400 8rem/1 var(--serif);color:var(--brass)}
+.ctl{position:absolute;left:5vw;right:5vw;bottom:5vh;display:flex;align-items:center;gap:18px;z-index:3}
+#dots{display:flex;gap:10px}
+#dots button{position:relative;width:34px;height:3px;border:0;background:rgba(243,238,228,.3);cursor:pointer;padding:0}
+#dots button::after{content:"";position:absolute;inset:-12px 0}
+#dots button[aria-current=true]{background:var(--brass)}
+.ar{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ivory);cursor:pointer;font-size:1.3rem;line-height:1}
+.ar:hover{background:var(--brass);color:var(--deep)}
+.trust{background:var(--deep);color:var(--ivory);display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border-top:1px solid var(--line)}
+.trust>div{padding:26px 20px;text-align:center;border-right:1px solid var(--line)}
+.trust b{display:block;font-family:var(--serif);font-weight:400;font-size:1.15rem;color:var(--brass)}
+.trust span{font-size:.88rem;color:#b9c5bd}
+.card .ph{position:relative}
+.card .ph::after{content:"Voir le produit";position:absolute;inset:auto 0 0;padding:14px;background:rgba(10,22,18,.88);color:var(--ivory);font-style:normal;font-family:var(--sans);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;transform:translateY(100%);transition:transform .3s}
+.card:hover .ph::after,.card:focus-visible .ph::after{transform:none}
+.follow{text-align:center;border-top:1px solid var(--line)}
+.follow .eye{color:#7a6030}
+.follow p{margin:14px 0 28px;color:#5b6b61}
+.wafab{position:fixed;right:20px;bottom:20px;z-index:20;width:58px;height:58px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.3);transition:transform .25s}
+.wafab:hover{transform:scale(1.08)}
+@media(max-width:820px){.slide{grid-template-columns:1fr;padding-bottom:20vh}.vis{position:absolute;inset:0;width:auto;margin:0;border-radius:0;border:0;outline:0;opacity:.25}.vis b{display:none}.trust>div{border-right:0;border-bottom:1px solid var(--line)}}
 section{padding:12vh 5vw}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:24px;margin-bottom:48px}
 h2{font-family:var(--serif);font-weight:400;font-size:clamp(2rem,5vw,3.6rem);line-height:1.05}
@@ -78,6 +110,10 @@ input,textarea{width:100%;border:0;border-bottom:1px solid var(--green);backgrou
 .close{position:absolute;right:14px;top:8px;font-size:2rem;background:none;border:0;cursor:pointer;z-index:2}
 .bl{display:flex;justify-content:space-between;gap:12px}
 .bl [lang=ar]{font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif}
+.prev{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.prev>div{position:relative;width:92px;height:92px;background:center/cover;border:1px solid var(--line)}
+.prev small{position:absolute;left:0;right:0;bottom:0;background:var(--green);color:var(--ivory);font-size:.65rem;text-align:center}
+.prev button{position:absolute;top:3px;right:3px;width:22px;height:22px;border:0;border-radius:50%;background:var(--green);color:var(--ivory);cursor:pointer;line-height:1}
 .msg{min-height:1.4em;font-size:.9rem}
 @media(max-width:720px){.pd{grid-template-columns:1fr}.pd .info{padding:24px}nav a{display:none}.rt{gap:0}}
 /* admin */
@@ -97,12 +133,12 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 <header><a class="logo" href="#">CARLA</a><div class="rt"><nav><a href="#collection">Collection</a><a href="#maison">La maison</a><a href="#contact">Contact</a></nav><div class="soc"><a id="ig" href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg></a><a id="fb" href="#" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.7c0-.9.3-1.5 1.600-1.500h1.600V4.500c-.3 0-1.200-.1-2.300-.1-2.300 0-3.900 1.400-3.900 4v2.100H8v3h2.500V21z"/></svg></a></div></div></header>
 
 <main>
-<div class="hero">
+<div class="hero" id="hero">
 <div class="arc" aria-hidden="true"></div>
-<h1>Le pas <i>juste</i>, chaque jour.</h1>
-<p>Des chaussures choisies pour leur cuir, leur coupe et leur tenue dans le temps. Livraison dans toute la Tunisie.</p>
-<div><a class="btn" href="#collection">Voir la collection</a></div>
+<div id="slides"></div>
+<div class="ctl"><button class="ar" id="sprev" aria-label="Précédent">‹</button><div id="dots"></div><button class="ar" id="snext" aria-label="Suivant">›</button></div>
 </div>
+<div class="trust"><div><b>Livraison</b><span>Partout en Tunisie</span></div><div><b>Paiement</b><span>À la livraison</span></div><div><b>Échange</b><span>De pointure</span></div><div><b>Service client</b><span>Sur WhatsApp</span></div></div>
 
 <section id="collection">
 <div class="head"><h2>La collection</h2></div>
@@ -115,10 +151,13 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 <div><h3>Livraison partout</h3><p>Expédition dans toute la Tunisie et paiement à la livraison.</p></div>
 <div><h3>Échange de pointure</h3><p>Une pointure qui ne va pas ? Contactez-nous, nous l’échangeons.</p></div>
 </section>
+
+<section class="follow"><span class="eye">Instagram</span><h2>@carla__shoes</h2><p>Nouveautés, arrivages et offres, en avant-première.</p><a class="btn ghost" id="ig2" target="_blank" rel="noopener">Nous suivre</a></section>
 </main>
 
 <footer id="contact"><span>© CARLA</span><a href="#" id="wa">WhatsApp</a><a href="tel:+21655502278">55 502 278</a><a href="tel:+21655502289">55 502 289</a></footer>
 
+<a class="wafab" id="wa2" target="_blank" rel="noopener" aria-label="Commander sur WhatsApp"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
 <dialog id="dlg"><button class="close" aria-label="Fermer" onclick="dlg.close()">×</button><div class="pd" id="pd"></div></dialog>
 </div>
 
@@ -137,7 +176,7 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 <div class="row"><label>Pointures (séparées par des virgules)<input id="ps" placeholder="40, 41, 42, 43" required></label>
 <label>Couleurs (séparées par des virgules)<input id="pk" placeholder="Noir, Marron"></label></div>
 <label>Description<textarea id="pd2" rows="3"></textarea></label>
-<label>Photos<input id="pf2" type="file" accept="image/*" multiple required></label>
+<div style="margin:10px 0"><label style="margin-bottom:8px">Photos (la première est la photo principale)</label><button type="button" class="btn ghost" id="addph">+ Ajouter des photos</button><input id="pf2" type="file" accept="image/*" multiple hidden><div class="prev" id="prev"></div></div>
 <button class="btn ghost" type="submit">Publier l’article</button><p class="msg" id="pm"></p></form>
 <h2>Articles</h2><div class="list" id="plist"></div>
 <h2>Commandes</h2><div class="list" id="olist"></div>
@@ -212,12 +251,46 @@ function openP(id){
   dlg.showModal();
 }
 
+/* ---- Slider ---- */
+let si=0,timer;
+function slidesData(){
+  const out=[{eye:"Collection CARLA",h:"Le pas <i>juste</i>, chaque jour.",p:"Des chaussures choisies pour leur cuir, leur coupe et leur tenue dans le temps.",cta:"Voir la collection",href:"#collection"}];
+  products.filter(p=>p.images&&p.images[0]).slice(0,3).forEach(p=>out.push({id:p.id,img:p.images[0],eye:"Nouveauté · "+p.category,h:esc(p.name),p:p.price+" DT",cta:"Découvrir"}));
+  out.push({eye:"Service",h:"Livré chez vous, <i>payé</i> à la livraison.",p:"Livraison dans toute la Tunisie. Commandez en quelques clics ou directement sur WhatsApp.",cta:"Commander sur WhatsApp",href:"https://wa.me/"+CONFIG.whatsapp});
+  return out;
+}
+function buildSlides(){
+  const d=slidesData();if(si>=d.length)si=0;
+  $("#slides").innerHTML=d.map((x,i)=>`<div class="slide ${i===si?"on":""}" aria-hidden="${i!==si}"><div class="txt"><span class="eye">${esc(x.eye)}</span><h1>${x.h}</h1><p>${esc(x.p)}</p>${x.id?`<button class="btn" data-id="${esc(x.id)}">${x.cta}</button>`:`<a class="btn" href="${x.href}" ${x.href[0]==="h"?'target="_blank" rel="noopener"':""}>${x.cta}</a>`}</div><div class="vis" ${x.img?`style="background-image:url('${esc(x.img)}')"`:""}>${x.img?"":"<b>C</b>"}</div></div>`).join("");
+  $("#dots").innerHTML=d.map((_,i)=>`<button data-i="${i}" aria-label="Diapositive ${i+1}" ${i===si?'aria-current="true"':""}></button>`).join("");
+  auto();
+}
+function go(i){
+  const sl=[...$("#slides").children];si=(i+sl.length)%sl.length;
+  sl.forEach((e,j)=>{e.classList.toggle("on",j===si);e.setAttribute("aria-hidden",j!==si)});
+  [...$("#dots").children].forEach((e,j)=>j===si?e.setAttribute("aria-current","true"):e.removeAttribute("aria-current"));
+}
+function auto(){clearInterval(timer);if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;timer=setInterval(()=>go(si+1),6500)}
+$("#sprev").onclick=()=>{go(si-1);auto()};
+$("#snext").onclick=()=>{go(si+1);auto()};
+$("#dots").onclick=e=>{const b=e.target.closest("[data-i]");if(b){go(+b.dataset.i);auto()}};
+$("#slides").onclick=e=>{const b=e.target.closest("button[data-id]");if(b)openP(b.dataset.id)};
+$("#hero").addEventListener("mouseenter",()=>clearInterval(timer));
+$("#hero").addEventListener("mouseleave",auto);
+addEventListener("scroll",()=>$("header").classList.toggle("scrolled",scrollY>40),{passive:true});
+$("#ig2").href=CONFIG.instagram;$("#wa2").href="https://wa.me/"+CONFIG.whatsapp;
+
 /* ---- Firebase ---- */
 if(live){
   firebase.initializeApp(CONFIG.firebase);db=firebase.firestore();auth=firebase.auth();
-  db.collection("products").orderBy("createdAt","desc").onSnapshot(s=>{products=s.docs.map(d=>({id:d.id,...d.data()}));render();adminList()},()=>{products=demo;render()});
-}else{products=demo;render()}
+  db.collection("products").orderBy("createdAt","desc").onSnapshot(s=>{products=s.docs.map(d=>({id:d.id,...d.data()}));render();adminList();buildSlides()},()=>{products=demo;render();buildSlides()});
+}else{products=demo;render();buildSlides()}
 
+let picked=[];
+function showPrev(){$("#prev").innerHTML=picked.map((f,i)=>`<div style="background-image:url('${URL.createObjectURL(f)}')">${i?"":"<small>Principale</small>"}<button type="button" data-i="${i}" aria-label="Retirer la photo">×</button></div>`).join("")}
+$("#addph").onclick=()=>$("#pf2").click();
+$("#pf2").onchange=e=>{picked.push(...e.target.files);e.target.value="";showPrev()};
+$("#prev").onclick=e=>{const b=e.target.closest("button");if(b){picked.splice(+b.dataset.i,1);showPrev()}};
 /* ---- Admin ---- */
 function adminList(){
   $("#plist").innerHTML=products.map(p=>`<div class="item"><div>${esc(p.name)}<small>${esc(p.category)} · ${esc(p.price)} DT · pointures ${esc((p.sizes||[]).join(", "))}</small></div><button class="link" data-del="${esc(p.id)}">Supprimer</button></div>`).join("")||`<p class="msg">Aucun article. Ajoutez le premier ci-dessus.</p>`;
@@ -236,14 +309,14 @@ if(live){
   $("#lf").onsubmit=async e=>{e.preventDefault();try{await auth.signInWithEmailAndPassword($("#em").value,$("#pw").value)}catch{$("#lm").textContent="E-mail ou mot de passe incorrect."}};
   $("#out").onclick=()=>auth.signOut();
   $("#pf").onsubmit=async e=>{
-    e.preventDefault();const m=$("#pm");m.textContent="Envoi des photos…";
+    e.preventDefault();const m=$("#pm");if(!picked.length){m.textContent="Ajoutez au moins une photo.";return}m.textContent="Envoi des photos…";
     try{
       const urls=[];
-      for(const f of $("#pf2").files){const fd=new FormData();fd.append("image",f);
+      for(const f of picked){const fd=new FormData();fd.append("image",f);
         const r=await fetch("https://api.imgbb.com/1/upload?key="+CONFIG.imgbbKey,{method:"POST",body:fd});const j=await r.json();urls.push(j.data.url)}
       const split=v=>v.split(",").map(x=>x.trim()).filter(Boolean);
       await db.collection("products").add({name:$("#pn").value,price:Number($("#pp").value),category:$("#pc").value.trim(),sizes:split($("#ps").value),colors:split($("#pk").value),description:$("#pd2").value,images:urls,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-      e.target.reset();m.textContent="Article publié.";
+      e.target.reset();picked=[];showPrev();m.textContent="Article publié.";
     }catch{m.textContent="La publication a échoué. Vérifiez la clé ImgBB et votre connexion."}
   };
 }else{$("#lm").textContent="Renseignez d’abord la configuration Firebase dans index.html."}
