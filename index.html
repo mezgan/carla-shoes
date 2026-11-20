@@ -58,7 +58,7 @@ header.scrolled{background:rgba(10,22,18,.94);backdrop-filter:blur(8px)}
 .trust span{font-size:.88rem;color:#b9c5bd}
 .card .ph{position:relative}
 .card .ph::after{content:"Voir le produit";position:absolute;inset:auto 0 0;padding:14px;background:rgba(10,22,18,.88);color:var(--ivory);font-style:normal;font-family:var(--sans);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;transform:translateY(100%);transition:transform .3s}
-.card:hover .ph::after,.card:focus-visible .ph::after{transform:none}
+.card:hover .ph::after,.card:focus-within .ph::after{transform:none}
 .follow{text-align:center;border-top:1px solid var(--line)}
 .follow .eye{color:#7a6030}
 .follow p{margin:14px 0 28px;color:#5b6b61}
@@ -83,6 +83,9 @@ select{border:1px solid var(--green);background:none;padding:8px 14px;border-rad
 .ph{aspect-ratio:4/5;background:#e6dfd0 center/cover no-repeat;display:grid;place-items:center;font-family:var(--serif);font-style:italic;color:var(--muted);overflow:hidden}
 .ph.photo{transition:background-size .5s}
 .card:hover .ph{background-size:108%}
+.open{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px}
+.buy{padding:9px 24px;font-size:.85rem}
 .card h3{font-family:var(--serif);font-weight:400;font-size:1.3rem;margin-top:16px}
 .card span{color:#5b6b61}
 .empty{grid-column:1/-1;padding:40px 0;color:#5b6b61}
@@ -215,7 +218,7 @@ function render(){
   $("#filters").innerHTML=cats.map(c=>`<button class="chip" aria-pressed="${c===cat}" data-c="${esc(c)}">${esc(c)}</button>`).join("")+
     `<select id="sz" aria-label="Pointure"><option value="">Toutes pointures</option>${sizes.map(s=>`<option ${s===size?"selected":""}>${esc(s)}</option>`).join("")}</select>`;
   const list=products.filter(p=>(cat==="Tous"||p.category===cat)&&(!size||(p.sizes||[]).includes(size)));
-  $("#grid").innerHTML=list.length?list.map(p=>`<button class="card" data-id="${esc(p.id)}"><div class="ph ${p.images?.[0]?"photo":""}" style="${p.images?.[0]?`background-image:url('${esc(p.images[0])}')`:""}">${p.images?.[0]?"":"Photo à venir"}</div><h3>${esc(p.name)}</h3><span>${esc(p.price)} DT</span></button>`).join(""):`<p class="empty">Aucun article ne correspond à ce filtre.</p>`;
+  $("#grid").innerHTML=list.length?list.map(p=>`<div class="card" data-id="${esc(p.id)}"><div class="ph ${p.images?.[0]?"photo":""}" style="${p.images?.[0]?`background-image:url('${esc(p.images[0])}')`:""}">${p.images?.[0]?"":"Photo à venir"}</div><h3><button type="button" class="open">${esc(p.name)}</button></h3><div class="crow"><span>${esc(p.price)} DT</span><button type="button" class="btn ghost buy">Acheter</button></div></div>`).join(""):`<p class="empty">Aucun article ne correspond à ce filtre.</p>`;
 }
 $("#filters").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b){cat=b.dataset.c;render()}});
 $("#filters").addEventListener("change",e=>{if(e.target.id==="sz"){size=e.target.value;render()}});
@@ -231,7 +234,7 @@ function openP(id){
   <div><label>Pointure</label><div class="opts" id="so">${(p.sizes||[]).map(x=>`<button type="button" data-v="${esc(x)}" aria-pressed="false">${esc(x)}</button>`).join("")}</div></div>
   ${(p.colors||[]).length?`<div><label>Couleur</label><div class="opts" id="ko">${p.colors.map((x,i)=>`<button type="button" data-v="${esc(x)}" aria-pressed="${!i}">${esc(x)}</button>`).join("")}</div></div>`:""}
   <form id="of"><label><span class="bl"><span>Nom complet</span><span lang="ar" dir="rtl">الاسم الكامل</span></span><input name="n" required autocomplete="name"></label><label><span class="bl"><span>Téléphone</span><span lang="ar" dir="rtl">رقم الهاتف</span></span><input name="t" type="tel" required autocomplete="tel"></label><label><span class="bl"><span>Adresse de livraison</span><span lang="ar" dir="rtl">عنوان التسليم</span></span><input name="a" required autocomplete="street-address"></label>
-  <button class="btn" type="submit">Commander</button><p class="msg" id="om" role="status"></p></form></div>`;
+  <button class="btn" type="submit">Acheter</button><p class="msg" id="om" role="status"></p></form></div>`;
   $("#pd").onclick=e=>{
     const th=e.target.closest(".thumbs button");
     if(th){$("#big").style.backgroundImage=`url('${th.dataset.u}')`;$("#pd").querySelectorAll(".thumbs button").forEach(b=>b.removeAttribute("aria-current"));th.setAttribute("aria-current","true")}
