@@ -128,6 +128,7 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 .list{border-top:1px solid var(--line)}
 .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .item small{display:block;color:#5b6b61}
+.acts{display:flex;align-items:center;gap:16px}
 .link{background:none;border:0;text-decoration:underline;cursor:pointer}
 </style>
 </head>
@@ -301,8 +302,9 @@ function adminList(){
 $("#plist").addEventListener("click",async e=>{const id=e.target.dataset.del;if(id&&confirm("Supprimer cet article ?"))await db.collection("products").doc(id).delete()});
 function ordersList(docs){
   $("#olist").innerHTML=docs.map(d=>{const o=d.data();return `<div class="item"><div>${esc(o.product)} — pointure ${esc(o.size)} ${esc(o.color)}<small>${esc(o.name)} · ${esc(o.phone)} · ${esc(o.address)}</small></div>
-  <select data-o="${d.id}" aria-label="Statut">${["en cours","validée","annulée"].map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select></div>`}).join("")||`<p class="msg">Aucune commande pour le moment.</p>`;
+  <div class="acts"><select data-o="${d.id}" aria-label="Statut">${["en cours","validée","annulée"].map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select><button type="button" class="link" data-delo="${d.id}">Supprimer</button></div></div>`}).join("")||`<p class="msg">Aucune commande pour le moment.</p>`;
 }
+$("#olist").addEventListener("click",async e=>{const id=e.target.dataset.delo;if(id&&confirm("Supprimer cette commande ? Cette action est définitive."))await db.collection("orders").doc(id).delete()});
 $("#olist").addEventListener("change",e=>{if(e.target.dataset.o)db.collection("orders").doc(e.target.dataset.o).update({status:e.target.value})});
 if(live){
   auth.onAuthStateChanged(u=>{
