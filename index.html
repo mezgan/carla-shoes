@@ -172,7 +172,7 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 <button class="btn ghost" type="submit">Se connecter</button><p class="msg" id="lm"></p></form></div>
 
 <div class="panel" id="dash" hidden>
-<div class="item"><h2 style="margin:0">Ajouter un article</h2><button class="link" id="out">Se déconnecter</button></div>
+<div class="item"><h2 style="margin:0" id="ph2">Ajouter un article</h2><button class="link" id="out">Se déconnecter</button></div>
 <form id="pf" style="margin-top:20px">
 <label>Nom<input id="pn" required></label>
 <div class="row"><label>Prix (DT)<input id="pp" type="number" min="0" step="0.001" required></label>
@@ -181,7 +181,7 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 <label>Couleurs (séparées par des virgules)<input id="pk" placeholder="Noir, Marron"></label></div>
 <label>Description<textarea id="pd2" rows="3"></textarea></label>
 <div style="margin:10px 0"><label style="margin-bottom:8px">Photos (la première est la photo principale)</label><button type="button" class="btn ghost" id="addph">+ Ajouter des photos</button><input id="pf2" type="file" accept="image/*" multiple hidden><div class="prev" id="prev"></div></div>
-<button class="btn ghost" type="submit">Publier l’article</button><p class="msg" id="pm"></p></form>
+<button class="btn ghost" type="submit" id="psub">Publier l’article</button> <button type="button" class="link" id="pcancel" hidden>Annuler la modification</button><p class="msg" id="pm"></p></form>
 <h2>Articles</h2><div class="list" id="plist"></div>
 <h2>Commandes</h2><div class="list" id="olist"></div>
 </div>
@@ -291,15 +291,25 @@ if(live){
 }else{products=demo;render();buildSlides()}
 
 let picked=[];
-function showPrev(){$("#prev").innerHTML=picked.map((f,i)=>`<div style="background-image:url('${URL.createObjectURL(f)}')">${i?"":"<small>Principale</small>"}<button type="button" data-i="${i}" aria-label="Retirer la photo">×</button></div>`).join("")}
+function showPrev(){$("#prev").innerHTML=picked.map((f,i)=>`<div style="background-image:url('${typeof f==="string"?esc(f):URL.createObjectURL(f)}')">${i?"":"<small>Principale</small>"}<button type="button" data-i="${i}" aria-label="Retirer la photo">×</button></div>`).join("")}
 $("#addph").onclick=()=>$("#pf2").click();
 $("#pf2").onchange=e=>{picked.push(...e.target.files);e.target.value="";showPrev()};
 $("#prev").onclick=e=>{const b=e.target.closest("button");if(b){picked.splice(+b.dataset.i,1);showPrev()}};
 /* ---- Admin ---- */
 function adminList(){
-  $("#plist").innerHTML=products.map(p=>`<div class="item"><div>${esc(p.name)}<small>${esc(p.category)} · ${esc(p.price)} DT · pointures ${esc((p.sizes||[]).join(", "))}</small></div><button class="link" data-del="${esc(p.id)}">Supprimer</button></div>`).join("")||`<p class="msg">Aucun article. Ajoutez le premier ci-dessus.</p>`;
+  $("#plist").innerHTML=products.map(p=>`<div class="item"><div>${esc(p.name)}<small>${esc(p.category)} · ${esc(p.price)} DT · pointures ${esc((p.sizes||[]).join(", "))}</small></div><div class="acts"><button type="button" class="link" data-edit="${esc(p.id)}">Modifier</button><button type="button" class="link" data-del="${esc(p.id)}">Supprimer</button></div></div>`).join("")||`<p class="msg">Aucun article. Ajoutez le premier ci-dessus.</p>`;
 }
 $("#plist").addEventListener("click",async e=>{const id=e.target.dataset.del;if(id&&confirm("Supprimer cet article ?"))await db.collection("products").doc(id).delete()});
+let editId=null;
+function setEdit(id){editId=id;$("#ph2").textContent=id?"Modifier l’article":"Ajouter un article";$("#psub").textContent=id?"Enregistrer les modifications":"Publier l’article";$("#pcancel").hidden=!id}
+function endEdit(){$("#pf").reset();picked=[];showPrev();setEdit(null)}
+$("#pcancel").onclick=()=>{endEdit();$("#pm").textContent=""};
+$("#plist").addEventListener("click",e=>{
+  const id=e.target.dataset.edit;if(!id)return;
+  const p=products.find(x=>x.id===id);if(!p)return;
+  $("#pn").value=p.name;$("#pp").value=p.price;$("#pc").value=p.category;$("#ps").value=(p.sizes||[]).join(", ");$("#pk").value=(p.colors||[]).join(", ");$("#pd2").value=p.description||"";
+  picked=[...(p.images||[])];showPrev();setEdit(id);$("#pm").textContent="";$("#ph2").scrollIntoView({behavior:"smooth"});
+});
 function ordersList(docs){
   $("#olist").innerHTML=docs.map(d=>{const o=d.data();return `<div class="item"><div>${esc(o.product)} — pointure ${esc(o.size)} ${esc(o.color)}<small>${esc(o.name)} · ${esc(o.phone)} · ${esc(o.address)}</small></div>
   <div class="acts"><select data-o="${d.id}" aria-label="Statut">${["en cours","validée","annulée"].map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select><button type="button" class="link" data-delo="${d.id}">Supprimer</button></div></div>`}).join("")||`<p class="msg">Aucune commande pour le moment.</p>`;
@@ -314,15 +324,20 @@ if(live){
   $("#lf").onsubmit=async e=>{e.preventDefault();try{await auth.signInWithEmailAndPassword($("#em").value,$("#pw").value)}catch{$("#lm").textContent="E-mail ou mot de passe incorrect."}};
   $("#out").onclick=()=>auth.signOut();
   $("#pf").onsubmit=async e=>{
-    e.preventDefault();const m=$("#pm");if(!picked.length){m.textContent="Ajoutez au moins une photo.";return}m.textContent="Envoi des photos…";
+    e.preventDefault();const m=$("#pm");
+    if(!picked.length){m.textContent="Ajoutez au moins une photo.";return}
+    m.textContent="Envoi en cours…";
     try{
       const urls=[];
-      for(const f of picked){const fd=new FormData();fd.append("image",f);
+      for(const f of picked){
+        if(typeof f==="string"){urls.push(f);continue}
+        const fd=new FormData();fd.append("image",f);
         const r=await fetch("https://api.imgbb.com/1/upload?key="+CONFIG.imgbbKey,{method:"POST",body:fd});const j=await r.json();urls.push(j.data.url)}
       const split=v=>v.split(",").map(x=>x.trim()).filter(Boolean);
-      await db.collection("products").add({name:$("#pn").value,price:Number($("#pp").value),category:$("#pc").value.trim(),sizes:split($("#ps").value),colors:split($("#pk").value),description:$("#pd2").value,images:urls,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-      e.target.reset();picked=[];showPrev();m.textContent="Article publié.";
-    }catch{m.textContent="La publication a échoué. Vérifiez la clé ImgBB et votre connexion."}
+      const data={name:$("#pn").value,price:Number($("#pp").value),category:$("#pc").value.trim(),sizes:split($("#ps").value),colors:split($("#pk").value),description:$("#pd2").value,images:urls};
+      if(editId){await db.collection("products").doc(editId).update(data);endEdit();m.textContent="Modifications enregistrées."}
+      else{data.createdAt=firebase.firestore.FieldValue.serverTimestamp();await db.collection("products").add(data);endEdit();m.textContent="Article publié."}
+    }catch{m.textContent="L’enregistrement a échoué. Vérifiez la clé ImgBB et votre connexion."}
   };
 }else{$("#lm").textContent="Renseignez d’abord la configuration Firebase dans index.html."}
 </script>
