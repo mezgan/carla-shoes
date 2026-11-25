@@ -157,6 +157,29 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 .item small{display:block;color:#5b6b61}
 .acts{display:flex;align-items:center;gap:16px}
 .link{background:none;border:0;text-decoration:underline;cursor:pointer}
+/* photos: jamais rognées (image entière + fond flou) */
+.ph.photo{background:#e6dfd0}
+.ph.photo::before{content:"";position:absolute;inset:-10%;background:var(--u) center/cover;filter:blur(22px) saturate(1.1);opacity:.85}
+.ph img{position:relative;width:100%;height:100%;object-fit:contain;transition:transform .5s}
+.card:hover .ph img{transform:scale(1.04)}
+.thumbs button{background:#e6dfd0 center/contain no-repeat}
+.vis.fit{position:relative;overflow:hidden;display:block}
+.vis.fit::before{content:"";position:absolute;inset:-10%;background:var(--u) center/cover;filter:blur(22px);opacity:.8}
+.vis.fit img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+@media(hover:none){.card .ph::after{display:none}}
+@media(max-width:820px){
+ section{padding:9vh 4vw}
+ .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 12px}
+ .card .ph{aspect-ratio:1/1.15}
+ .card h3{font-size:1rem;margin-top:10px;line-height:1.2}
+ .crow{flex-direction:column;align-items:stretch;gap:8px}
+ .crow span{font-size:.9rem}
+ .buy{text-align:center;padding:8px 6px;font-size:.72rem;letter-spacing:.06em}
+ .shop .filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}
+ .shop .chip,.shop select{flex:none}
+ .vis.fit{position:absolute}
+}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -250,9 +273,13 @@ function route(){
 }
 addEventListener("hashchange",route);addEventListener("popstate",route);route();
 
+function phHTML(im,alt,id){
+  const at=id?` id="${id}"`:"";
+  return im?`<div class="ph photo"${at} style="--u:url('${esc(im)}')"><img src="${esc(im)}" alt="${esc(alt)}" loading="lazy" decoding="async"></div>`:`<div class="ph"${at}>Photo à venir</div>`;
+}
 function cardHTML(p){
   const im=p.images?.[0],u="?produit="+encodeURIComponent(p.id);
-  return `<div class="card" data-id="${esc(p.id)}"><div class="ph ${im?"photo":""}" style="${im?`background-image:url('${esc(im)}')`:""}">${im?"":"Photo à venir"}</div><h3><a class="open" href="${u}">${esc(p.name)}</a></h3><div class="crow"><span>${esc(p.price)} DT</span><a class="btn ghost buy" href="${u}">Acheter</a></div></div>`;
+  return `<div class="card" data-id="${esc(p.id)}">${phHTML(im,p.name)}<h3><a class="open" href="${u}">${esc(p.name)}</a></h3><div class="crow"><span>${esc(p.price)} DT</span><a class="btn ghost buy" href="${u}">Acheter</a></div></div>`;
 }
 function render(){
   const cats=["Tous",...new Set(["Homme","Femme","Enfant","Classiques",...products.map(p=>p.category)])];
@@ -290,7 +317,7 @@ function showDone(o){
 function fillProduct(p){
   let s="",k=(p.colors||[])[0]||"";
   const imgs=p.images||[];
-  $("#pd").innerHTML=`<div class="gal"><div class="ph ${imgs[0]?"photo":""}" id="big" style="${imgs[0]?`background-image:url('${esc(imgs[0])}')`:""}">${imgs[0]?"":"Photo à venir"}</div>
+  $("#pd").innerHTML=`<div class="gal">${phHTML(imgs[0],p.name,"big")}
   <div class="thumbs">${imgs.map((u,i)=>`<button data-u="${esc(u)}" aria-label="Photo ${i+1}" style="background-image:url('${esc(u)}')" ${i?"":'aria-current="true"'}></button>`).join("")}</div></div>
   <div class="info"><h2>${esc(p.name)}</h2><div class="price">${esc(p.price)} DT</div><p>${esc(p.description)}</p>
   <div><label>Pointure</label><div class="opts" id="so">${(p.sizes||[]).map(x=>`<button type="button" data-v="${esc(x)}" aria-pressed="false">${esc(x)}</button>`).join("")}</div></div>
@@ -298,7 +325,7 @@ function fillProduct(p){
   <form id="of"><label><span class="bl"><span>Nom complet</span><span lang="ar" dir="rtl">الاسم الكامل</span></span><input name="n" required autocomplete="name"></label><label><span class="bl"><span>Téléphone</span><span lang="ar" dir="rtl">رقم الهاتف</span></span><input name="t" type="tel" required autocomplete="tel"></label><label><span class="bl"><span>Gouvernorat</span><span lang="ar" dir="rtl">الولاية</span></span><select name="g" required autocomplete="address-level1"><option value="">Choisir…</option>${GOUV.map(g=>`<option value="${g[0]}">${g[0]} — ${g[1]}</option>`).join("")}</select></label>
   <label><span class="bl"><span>Adresse de livraison</span><span lang="ar" dir="rtl">عنوان التسليم</span></span><input name="a" required autocomplete="street-address"></label>
   <button class="btn" type="submit">Acheter</button><p class="msg" id="om" role="status"></p></form><ul class="perks"><li>Livraison dans toute la Tunisie</li><li>Paiement à la livraison</li><li>Échange de pointure</li></ul><div class="share"><button type="button" class="link" id="cp">Copier le lien de cet article</button><a class="link" target="_blank" rel="noopener" href="https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Bonjour, je suis intéressé par : "+p.name)}">Une question ? WhatsApp</a></div></div>`;
-  const showImg=i=>{const u=imgs[i];if(!u)return;$("#big").style.backgroundImage=`url('${u}')`;[...$("#pd").querySelectorAll(".thumbs button")].forEach((b,j)=>j===i?b.setAttribute("aria-current","true"):b.removeAttribute("aria-current"))};
+  const showImg=i=>{const u=imgs[i];if(!u)return;const bg=$("#big");bg.style.setProperty("--u",`url('${u}')`);const im=bg.querySelector("img");if(im)im.src=u;[...$("#pd").querySelectorAll(".thumbs button")].forEach((b,j)=>j===i?b.setAttribute("aria-current","true"):b.removeAttribute("aria-current"))};
   const selColor=i=>{const kb=$("#ko");if(!kb||!kb.children[i])return;[...kb.children].forEach((b,j)=>b.setAttribute("aria-pressed",String(j===i)));k=kb.children[i].dataset.v};
   $("#pd").onclick=e=>{
     const th=e.target.closest(".thumbs button");
@@ -332,7 +359,7 @@ function slidesData(){
 }
 function buildSlides(){
   const d=slidesData();if(si>=d.length)si=0;
-  $("#slides").innerHTML=d.map((x,i)=>`<div class="slide ${i===si?"on":""}" aria-hidden="${i!==si}"><div class="txt"><span class="eye">${esc(x.eye)}</span><h1>${x.h}</h1><p>${esc(x.p)}</p>${x.id?`<button class="btn" data-id="${esc(x.id)}">${x.cta}</button>`:`<a class="btn" href="${x.href}" ${x.href[0]==="h"?'target="_blank" rel="noopener"':""}>${x.cta}</a>`}</div><div class="vis" ${x.img?`style="background-image:url('${esc(x.img)}')"`:""}>${x.img?"":"<b>C</b>"}</div></div>`).join("");
+  $("#slides").innerHTML=d.map((x,i)=>`<div class="slide ${i===si?"on":""}" aria-hidden="${i!==si}"><div class="txt"><span class="eye">${esc(x.eye)}</span><h1>${x.h}</h1><p>${esc(x.p)}</p>${x.id?`<button class="btn" data-id="${esc(x.id)}">${x.cta}</button>`:`<a class="btn" href="${x.href}" ${x.href[0]==="h"?'target="_blank" rel="noopener"':""}>${x.cta}</a>`}</div>${x.img?`<div class="vis fit" style="--u:url('${esc(x.img)}')"><img src="${esc(x.img)}" alt=""></div>`:`<div class="vis"><b>C</b></div>`}</div>`).join("");
   $("#dots").innerHTML=d.map((_,i)=>`<button data-i="${i}" aria-label="Diapositive ${i+1}" ${i===si?'aria-current="true"':""}></button>`).join("");
   auto();
 }
