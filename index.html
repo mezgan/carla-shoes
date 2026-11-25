@@ -198,9 +198,9 @@ body.is-admin #site{display:none}body.is-admin #admin{display:block}
 <div class="row"><label>Prix (DT)<input id="pp" type="number" min="0" step="0.001" required></label>
 <label>Catégorie<input id="pc" list="cats" required><datalist id="cats"><option>Homme</option><option>Femme</option><option>Enfant</option><option>Sport</option><option>Classiques</option></datalist></label></div>
 <div class="row"><label>Pointures (séparées par des virgules)<input id="ps" placeholder="40, 41, 42, 43" required></label>
-<label>Couleurs (séparées par des virgules)<input id="pk" placeholder="Noir, Marron"></label></div>
+<label>Couleurs (séparées par des virgules, dans l’ordre des photos)<input id="pk" placeholder="Noir, Marron"></label></div>
 <label>Description<textarea id="pd2" rows="3"></textarea></label>
-<div style="margin:10px 0"><label style="margin-bottom:8px">Photos (la première est la photo principale)</label><button type="button" class="btn ghost" id="addph">+ Ajouter des photos</button><input id="pf2" type="file" accept="image/*" multiple hidden><div class="prev" id="prev"></div></div>
+<div style="margin:10px 0"><label style="margin-bottom:8px">Photos (la 1re photo = la 1re couleur, la 2e photo = la 2e couleur…)</label><button type="button" class="btn ghost" id="addph">+ Ajouter des photos</button><input id="pf2" type="file" accept="image/*" multiple hidden><div class="prev" id="prev"></div></div>
 <button class="btn ghost" type="submit" id="psub">Publier l’article</button> <button type="button" class="link" id="pcancel" hidden>Annuler la modification</button><p class="msg" id="pm"></p></form>
 <h2>Articles</h2><div class="list" id="plist"></div>
 <h2>Commandes</h2><div class="list" id="olist"></div>
@@ -280,11 +280,17 @@ function fillProduct(p){
   <form id="of"><label><span class="bl"><span>Nom complet</span><span lang="ar" dir="rtl">الاسم الكامل</span></span><input name="n" required autocomplete="name"></label><label><span class="bl"><span>Téléphone</span><span lang="ar" dir="rtl">رقم الهاتف</span></span><input name="t" type="tel" required autocomplete="tel"></label><label><span class="bl"><span>Gouvernorat</span><span lang="ar" dir="rtl">الولاية</span></span><select name="g" required autocomplete="address-level1"><option value="">Choisir…</option>${GOUV.map(g=>`<option value="${g[0]}">${g[0]} — ${g[1]}</option>`).join("")}</select></label>
   <label><span class="bl"><span>Adresse de livraison</span><span lang="ar" dir="rtl">عنوان التسليم</span></span><input name="a" required autocomplete="street-address"></label>
   <button class="btn" type="submit">Acheter</button><p class="msg" id="om" role="status"></p></form><ul class="perks"><li>Livraison dans toute la Tunisie</li><li>Paiement à la livraison</li><li>Échange de pointure</li></ul><div class="share"><button type="button" class="link" id="cp">Copier le lien de cet article</button><a class="link" target="_blank" rel="noopener" href="https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Bonjour, je suis intéressé par : "+p.name)}">Une question ? WhatsApp</a></div></div>`;
+  const showImg=i=>{const u=imgs[i];if(!u)return;$("#big").style.backgroundImage=`url('${u}')`;[...$("#pd").querySelectorAll(".thumbs button")].forEach((b,j)=>j===i?b.setAttribute("aria-current","true"):b.removeAttribute("aria-current"))};
+  const selColor=i=>{const kb=$("#ko");if(!kb||!kb.children[i])return;[...kb.children].forEach((b,j)=>b.setAttribute("aria-pressed",String(j===i)));k=kb.children[i].dataset.v};
   $("#pd").onclick=e=>{
     const th=e.target.closest(".thumbs button");
-    if(th){$("#big").style.backgroundImage=`url('${th.dataset.u}')`;$("#pd").querySelectorAll(".thumbs button").forEach(b=>b.removeAttribute("aria-current"));th.setAttribute("aria-current","true")}
+    if(th){const i=[...th.parentNode.children].indexOf(th);showImg(i);selColor(i)}
     const o=e.target.closest(".opts button");
-    if(o){o.parentNode.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","false"));o.setAttribute("aria-pressed","true");if(o.parentNode.id==="so")s=o.dataset.v;else k=o.dataset.v}
+    if(o){
+      const par=o.parentNode;
+      if(par.id==="so"){[...par.children].forEach(b=>b.setAttribute("aria-pressed","false"));o.setAttribute("aria-pressed","true");s=o.dataset.v}
+      else{const i=[...par.children].indexOf(o);selColor(i);showImg(i)}
+    }
   };
   $("#of").onsubmit=async e=>{
     e.preventDefault();const m=$("#om");
